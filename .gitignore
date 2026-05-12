@@ -1,0 +1,9 @@
+.DS_Store
+node_modules/
+*.log
+.env
+.env.local
+e2e/artifacts/
+storageState.json
+playwright-report/
+test-results/

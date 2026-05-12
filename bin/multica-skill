@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# multica-skill — top-level dispatcher for installing/managing this bundle.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+usage() {
+  cat <<EOF
+multica-skill — install and manage the multica-skill bundle.
+
+Usage:
+  multica-skill install [<harness>...]   Install for detected (or named) harnesses
+  multica-skill onboard                  Run onboarding scripts (superpowers/playwright/atlassian-cli)
+  multica-skill flow ...                 Forwarded to multica-flow (pipeline driver)
+  multica-skill doctor                   Diagnose install + auth
+  multica-skill version                  Print version
+
+Examples:
+  multica-skill install
+  multica-skill install claude-code codex
+  multica-skill onboard
+  multica-skill flow new "Add CSV export"
+EOF
+}
+
+cmd="${1:-}"
+shift || true
+case "$cmd" in
+  install)
+    bash "$ROOT/install.sh" "$@"
+    ;;
+  onboard)
+    bash "$ROOT/skills/multica-onboarding/scripts/install-superpowers.sh"   || true
+    bash "$ROOT/skills/multica-onboarding/scripts/install-playwright.sh"    || true
+    bash "$ROOT/skills/multica-onboarding/scripts/install-atlassian-cli.sh" || true
+    ;;
+  flow)
+    exec "$ROOT/bin/multica-flow" "$@"
+    ;;
+  doctor)
+    echo "── multica-skill doctor ──"
+    for cli in multica claude codex gemini opencode pi; do
+      if command -v "$cli" >/dev/null 2>&1; then
+        printf "  ✓ %-10s %s\n" "$cli" "$(command -v $cli)"
+      else
+        printf "  ✗ %-10s not found\n" "$cli"
+      fi
+    done
+    if command -v multica >/dev/null 2>&1; then
+      echo
+      echo "── multica auth ──"
+      multica auth status || true
+      echo
+      echo "── multica daemon ──"
+      multica daemon status || true
+    fi
+    ;;
+  version|-v|--version)
+    echo "multica-skill 0.1.0"
+    ;;
+  ""|help|-h|--help)
+    usage
+    ;;
+  *)
+    echo "Unknown command: $cmd" >&2
+    usage
+    exit 2
+    ;;
+esac
