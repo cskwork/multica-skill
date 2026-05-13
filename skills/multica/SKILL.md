@@ -147,6 +147,32 @@ multica agent tasks       # what's currently running
 
 > Agents are **per-role**, not per-ticket. Wire `<tool>-<phase>` agents once (`claude-explorer`, `codex-implementer`, `gemini-reviewer`, `claude-qa`, …) and reuse them across all tickets via `multica issue assign`.
 
+### Assignment safety rule — only target a **workable** agent
+
+`multica issue assign` MUST target an agent whose daemon is currently picking up tasks. An agent shown as `idle` in `multica agent list` is not necessarily reachable — the underlying runtime may be offline on the device that owns it, and the daemon will cancel the task after a short execution window (observed: `task cancelled by server, interrupting agent` after ~2 min when the agent's runtime is registered but not actually claiming work).
+
+**Mandatory pre-flight before every assign:**
+
+```bash
+# 1. Confirm the runtime backing this agent is online on a reachable device
+multica runtime list           # filter for STATUS=online and the right provider/device
+
+# 2. Confirm the agent itself is workable
+#    - STATUS = "working"  → demonstrably online, your task will queue
+#    - STATUS = "idle"     → only safe if a recent task on this agent succeeded
+multica agent list
+
+# 3. If unsure, tail the daemon log for recent activity on the agent's tasks
+multica daemon logs -f
+```
+
+**Default preference order** (claude first, codex as fallback):
+
+1. The agent wired to the `claude-code` provider whose runtime is `online` on the current device — proven to claim tasks. Use this unless you have a specific reason otherwise.
+2. The agent wired to the `codex` provider — fallback when claude is saturated, offline, or repeatedly cancels.
+
+Skip any agent that you have just seen the server cancel without an obvious cause — re-check its runtime row in `multica runtime list` first. Resolve agent and runtime UUIDs at call time from `multica agent list` / `multica runtime list`; do not hard-code them, they are per-workspace and per-device.
+
 ## Skills — what this repo ships
 
 ```bash
