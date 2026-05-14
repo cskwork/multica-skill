@@ -227,6 +227,65 @@ for id in $(multica issue list --state todo --label phase:explore | awk '{print 
 done
 ```
 
+## Dispatch order — `agent_task_queue` is `priority DESC, created_at ASC`
+
+> **Important gotcha** observed when running 80+ issues through a single board.
+
+When you assign an issue to an agent, the server inserts a row into `agent_task_queue` with the **issue's priority** (`urgent/high/medium/low/none` → integer). The daemon's `ClaimAgentTask` query is:
+
+```sql
+ORDER BY atq.priority DESC, atq.created_at ASC
+LIMIT 1
+```
+
+So if you import a batch of issues with mixed priorities (e.g. `difficulty:H → priority high`, `M → medium`), the **high-priority tickets run first**, even when they sit in a later phase. Issues you intend to run first must NOT have a lower priority than later ones, or sequential order will silently invert.
+
+**Rules of thumb:**
+
+- For a "run in board order" feel, **flatten priority** (set everything to `medium`) and rely on `created_at ASC`.
+- If you need a strict T001 → T002 → … sequence, also pin per-agent `max_concurrent_tasks 1` and **hold the future work in a non-claimable status** (see below) so the queue can only contain one row at a time.
+- `agent_task_queue` rows are **independent of `issue.status`**: an issue moved to `backlog` or `cancelled` does **not** automatically cancel its queued task. You must cancel the queue too (see API below).
+
+## Holding work and forcing sequential dispatch
+
+The CLI does not expose a "single-flight" mode for an agent. To get strict sequential dispatch from a large pre-populated board:
+
+```bash
+# 1. Cap each agent so only one task can run at a time
+multica agent update <agent-id> --max-concurrent-tasks 1
+
+# 2. Move everything you don't want claimable into a non-todo status
+#    (claimable statuses are `todo` and—if already in flight—`in_progress`)
+multica issue status MUL-42 backlog       # held but visible in board
+multica issue status MUL-42 cancelled     # held + visually distinct (closed)
+
+# 3. Only the issues you want to run remain in `todo`.
+multica issue status MUL-7 todo
+multica issue assign MUL-7 --to claude-code
+```
+
+A small Python watcher that promotes the next `cancelled`/`backlog` issue to `todo` only after the previous one reaches `in_review`/`done` is the simplest "single-flight" loop. See [`examples/strict-sequential.py`](https://github.com/cskwork/multica-skill/blob/main/examples/strict-sequential.py).
+
+## Cancelling the agent task queue (when issue moves aren't enough)
+
+Once a queue has built up, **moving the underlying issues alone does not drain it**. The agent will keep claiming queued rows. Two options:
+
+- **CLI**: `multica issue status <id> cancelled` cancels active runs for that one issue.
+- **HTTP API** (no CLI equivalent today) bulk-cancels every queued/dispatched/running row for an agent:
+
+```bash
+TOK=mul_…                                   # PAT from `multica login`
+WS=$(multica config show | awk '/workspace_id/{print $2}')
+AGENT=$(multica agent list --output json | jq -r '.[] | select(.name=="claude-code") | .id')
+curl -sS -X POST \
+  -H "Authorization: Bearer $TOK" \
+  -H "X-Workspace-ID: $WS" \
+  http://localhost:9090/api/agents/$AGENT/cancel-tasks
+# → {"cancelled":N}
+```
+
+The route is `POST /api/agents/{id}/cancel-tasks` (mounted under `/api`, **not** `/api/v1`). The `X-Workspace-ID` header is required for CLI-style auth. Use this after a botched bulk-import or when a previously stuck queue has zombie rows that keep resurrecting on `multica daemon start`.
+
 ## Troubleshooting
 
 | Symptom | Fix |
@@ -236,6 +295,10 @@ done
 | Agent runs but stalls | `multica daemon logs -f`. Check `MULTICA_DAEMON_MAX_CONCURRENT_TASKS` and the agent's own `max_concurrent_tasks`. |
 | `multica skill import <github-url>` fails | The repo must contain a discoverable `SKILL.md` (top-level or under `skills/<name>/`). Try `multica skill import ./cloned-dir` first to confirm structure. |
 | CI run can't auth | `multica login --token "$MULTICA_PAT"` — do NOT bake the token into the image. |
+| Out-of-order dispatch after bulk import | `agent_task_queue` orders by `priority DESC`. Flatten priorities or pin only one issue to `todo` at a time. See *Dispatch order*. |
+| `daemon stop && daemon start` re-runs old tasks (zombie queue) | `agent_task_queue` rows survive across restarts. Bulk-cancel them via `POST /api/agents/{id}/cancel-tasks`. See *Cancelling the agent task queue*. |
+| Agent picks `in_progress` tickets you already finished elsewhere | The daemon claims rows by `agent_task_queue.status='queued'` regardless of `issue.status`. Cancel the orphan queue rows; do not rely on flipping the issue status. |
+| Bulk import created issues without `repo` context, agent says "no git repository" | Multica `multica project create` accepts `--repo <url>` only at creation. For an existing project, post a setup comment on each issue with the repo URL (or recreate the project). The daemon uses workspace-level repo cache (`~/multica_workspaces/.repos/...`) once any task references the URL. |
 
 ## See also
 

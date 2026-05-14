@@ -14,6 +14,25 @@ Harness-agnostic skill bundle that turns any [Multica](https://multica.ai) board
 | **`multica-workflow`** | Symphony-style 5-lane pipeline mapped onto Multica's fixed 7 states via `phase:*` labels. Per-lane prompt templates + a small `multica-flow` CLI to advance/rewind tickets. |
 | **`multica-onboarding`** | First-run bootstrap that registers three battle-tested default skills: **obra/superpowers**, **leweii/atlassian-cli**, and **Playwright**. |
 
+### Operations docs (under `docs/`)
+
+| Page | What it covers |
+|------|----------------|
+| [`HARNESSES.md`](docs/HARNESSES.md) | Tool-by-tool integration notes |
+| [`WORKFLOW.md`](docs/WORKFLOW.md) | Phase semantics + transition matrix |
+| [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Why the bundle is shaped this way |
+| [`SEQUENTIAL_DISPATCH.md`](docs/SEQUENTIAL_DISPATCH.md) | Running 80+ issues in strict order, draining a zombie queue, working around `priority DESC` claim order |
+
+### Battle-tested scripts (under `examples/`)
+
+| Script | Purpose |
+|--------|---------|
+| `import-tasks-from-md.py` | Bulk-create Multica issues from a `tasks.md` checklist (with phase / difficulty labels, parent epic, auto-assign) |
+| `rebalance-by-phase.py` | Reassign issues to the right agent based on `phase:*` label without changing status |
+| `holdback-wave.py` | Reset stuck issues + flatten priorities + hold future waves in `backlog` |
+| `wave-promoter.py` | Promote `phase:foundation` once all `phase:setup` are done, etc. |
+| `strict-sequential.py` | Single-flight watcher — one issue at a time, in task-ID order |
+
 The whole bundle is plain `SKILL.md` + bash, so every harness that reads markdown can consume it.
 
 ---
