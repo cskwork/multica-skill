@@ -115,7 +115,12 @@ def tick(issues, verbose=True):
     agent = desired_agent(nxt)
     print(f"# promote {nxt.get('identifier')} → todo (assign:{agent}): {nxt.get('title')[:60]}")
     run(["multica", "issue", "status", nxt["id"], "todo", "--output", "table"])
+    # 명시적 재할당: 직전 cancel-tasks 가 큐 row 까지 비웠을 수 있어서
+    # unassign 후 다시 assign 하면 새 queue row 가 생성된다.
+    run(["multica", "issue", "assign", nxt["id"], "--unassign"])
     run(["multica", "issue", "assign", nxt["id"], "--to", agent, "--output", "json"])
+    # 안전망: 만약 assign 만으로 queue 가 생기지 않으면 rerun 으로 강제 enqueue
+    run(["multica", "issue", "rerun", nxt["id"], "--output", "json"])
     return False
 
 
