@@ -89,3 +89,17 @@ The shipping example `import-tasks-from-md.py` parses a markdown checklist (`tas
 - `examples/holdback-wave.py` — initial state setup: reset stuck issues + flatten priorities + hold future waves
 - `examples/rebalance-by-phase.py` — reassign issues to the desired agent based on `phase:*` label, leaving issue status untouched
 - `examples/import-tasks-from-md.py` — bulk-create issues from a tasks.md checklist
+
+## Caveat: after `cancel-tasks`, you must re-enqueue assigned issues
+
+`POST /api/agents/{id}/cancel-tasks` flips every `queued|dispatched|running` row to `cancelled` — including the row that was created by a previous `multica issue assign`. The assignment on the issue remains, but the queue has nothing for the daemon to claim, so the task **looks scheduled but never starts**.
+
+Force a fresh queue row:
+
+```bash
+multica issue assign $ID --unassign
+multica issue assign $ID --to claude-code
+multica issue rerun $ID
+```
+
+The single-flight watcher in `examples/strict-sequential.py` does this on every promotion.
