@@ -28,7 +28,7 @@ if [[ -z "$EXT_DEST" && -z "$SKILL_DEST" ]]; then
 fi
 
 if [[ -n "$SKILL_DEST" ]]; then
-  for skill in multica multica-workflow multica-onboarding; do
+  for skill in multica; do
     src="${REPO_ROOT}/skills/${skill}"
     if [[ ! -d "$src" ]]; then continue; fi
     rm -rf "${SKILL_DEST}/${skill}"

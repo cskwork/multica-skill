@@ -6,7 +6,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DEST="${HOME}/.claude/skills"
 mkdir -p "$DEST"
 
-for skill in multica multica-workflow multica-onboarding; do
+for skill in multica; do
   src="${REPO_ROOT}/skills/${skill}"
   if [[ ! -d "$src" ]]; then
     echo "[claude-code] WARN: missing source $src" >&2

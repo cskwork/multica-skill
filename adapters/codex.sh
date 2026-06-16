@@ -8,7 +8,7 @@ SKILL_DEST="${HOME}/.codex/skills"
 CMD_DEST="${HOME}/.codex/commands"
 mkdir -p "$SKILL_DEST" "$CMD_DEST"
 
-for skill in multica multica-workflow multica-onboarding; do
+for skill in multica; do
   src="${REPO_ROOT}/skills/${skill}"
   if [[ ! -d "$src" ]]; then continue; fi
 
@@ -22,4 +22,4 @@ for skill in multica multica-workflow multica-onboarding; do
   echo "[codex] copied ${CMD_DEST}/${skill}.md"
 done
 
-echo "[codex] Done. Use /multica, /multica-workflow, /multica-onboarding in Codex."
+echo "[codex] Done. Use /multica in Codex."

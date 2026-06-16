@@ -7,7 +7,7 @@ DEST="${HOME}/.config/opencode/skills"
 CMD_DEST="${HOME}/.config/opencode/commands"
 mkdir -p "$DEST" "$CMD_DEST"
 
-for skill in multica multica-workflow multica-onboarding; do
+for skill in multica; do
   src="${REPO_ROOT}/skills/${skill}"
   if [[ ! -d "$src" ]]; then continue; fi
   rm -rf "${DEST}/${skill}"

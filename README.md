@@ -1,20 +1,31 @@
 # multica-skill
 
-Harness-agnostic skill bundle that turns any [Multica](https://multica.ai) board into a **full coding pipeline** — `todo → explore → work → review → qa → done` — drivable from Claude Code, Codex, Gemini, OpenCode, Pi, Cursor, Copilot, or Hermes.
+A single, harness-agnostic [Agent Skill](https://agentskills.io) for the
+[Multica](https://multica.ai) managed-agents platform. It teaches any coding
+agent the **full `multica` CLI**, how to **onboard a machine**, and how to run a
+**multi-phase coding pipeline** (explore → work → review → qa → learn) on a
+Multica board.
 
-> One ticket. Many agents. Each phase a fresh context. Failures rewind to `work`, not into the void.
+> One skill. The whole CLI. Onboarding and workflow, mapped to the official docs.
+
+📄 **Landing page:** [cskwork.github.io/multica-skill](https://cskwork.github.io/multica-skill/)
 
 ---
 
 ## What's inside
 
-| Skill | Purpose |
-|-------|---------|
-| **`multica`** | Day-to-day Multica CLI guide — login, issues, agents, daemon, autopilot. |
-| **`multica-workflow`** | Symphony-style 5-lane pipeline mapped onto Multica's fixed 7 states via `phase:*` labels. Per-lane prompt templates + a small `multica-flow` CLI to advance/rewind tickets. |
-| **`multica-onboarding`** | First-run bootstrap that registers three battle-tested default skills: **obra/superpowers**, **leweii/atlassian-cli**, and **Playwright**. |
+One skill, with heavy detail split into references (progressive disclosure — the
+agent loads only what it needs):
 
-The whole bundle is plain `SKILL.md` + bash, so every harness that reads markdown can consume it.
+| File | Purpose |
+|------|---------|
+| `skills/multica/SKILL.md` | The reference card: mental model, command index, the three rules that drive Multica. |
+| `skills/multica/references/cli-reference.md` | Every CLI command by area, with exact flags. |
+| `skills/multica/references/onboarding.md` | First run: install → `setup` → verify runtime → create agent → first task. |
+| `skills/multica/references/workflow.md` | The explore→work→review→qa→learn pipeline, rewind logic, copy-paste shell recipes. |
+
+Every command is checked against Multica's official `CLI_AND_DAEMON.md` and
+`docs/cli` — no guessed flags.
 
 ---
 
@@ -22,17 +33,10 @@ The whole bundle is plain `SKILL.md` + bash, so every harness that reads markdow
 
 ### Option 1 — Via Multica (recommended)
 
-Multica has native skill import from GitHub:
-
 ```bash
-multica skill import https://github.com/cskwork/multica-skill
+multica skill import --url https://github.com/cskwork/multica-skill
 multica skill list | grep multica
-```
-
-Then enable the bundle in any agent:
-
-```bash
-multica agent update <agent-slug> --skill multica --skill multica-workflow --skill multica-onboarding
+multica agent skills <agent-slug>      # attach it to an agent (nested command — see --help)
 ```
 
 ### Option 2 — Any other harness
@@ -40,88 +44,62 @@ multica agent update <agent-slug> --skill multica --skill multica-workflow --ski
 ```bash
 git clone https://github.com/cskwork/multica-skill ~/.multica-skill
 cd ~/.multica-skill
-./install.sh
+./install.sh                 # auto-detects claude / codex / gemini / opencode / pi
+# or target one explicitly:
+./install.sh claude-code     # → ~/.claude/skills/multica/
 ```
 
-`install.sh` detects what's installed (`claude`, `codex`, `gemini`, `opencode`, `pi`, `cursor`, `droid`) and runs the matching adapter. You can also target one explicitly:
-
-```bash
-./install.sh claude-code    # ~/.claude/skills/
-./install.sh codex          # ~/.codex/commands/
-./install.sh gemini         # gemini extensions install
-./install.sh opencode       # ~/.config/opencode/commands/
-./install.sh pi             # ~/.pi/skills/
-```
-
-After install, run the onboarding skill from inside your harness:
-
-```
-/multica-onboarding
-```
-
-It will:
-1. Verify `multica` CLI is installed and authenticated.
-2. Register `obra/superpowers` (via your harness's plugin/extension system).
-3. Drop `leweii/atlassian-cli`'s `SKILL.md` into your skills dir (no-op if `acli` itself isn't installed).
-4. Install `@playwright/test` + browsers into the current project, plus the `playwright-cli-skill`.
+Then invoke `/multica` (or just mention "multica") inside your harness.
 
 ---
 
 ## The pipeline
 
-Multica's states are fixed: `backlog | todo | in_progress | in_review | done | blocked | cancelled`. multica-workflow layers Symphony's richer lane semantics on top using **labels**:
+Multica's states are fixed (`backlog | todo | in_progress | in_review | done |
+blocked | cancelled`) and there is no label-setting CLI command, so the workflow
+encodes each phase in **issue metadata** (`pipeline_status`) and moves status +
+reassigns as it advances:
 
 ```
-backlog ─▶ todo ─▶ in_progress ─▶ in_progress ─▶ in_review ─▶ in_review ─▶ done
-          phase:    phase:         phase:         phase:        phase:
-          explore   work           review         qa            learn
+explore ─▶ work ─▶ review ─▶ qa ─▶ learn ─▶ done
+   ▲                  │        │
+   └──── rewind ◀──────┴────────┘     review or qa finds a problem → back to work
 ```
 
-Severity-based rewinds:
-
-- **Review** finds CRITICAL / HIGH / MEDIUM → ticket bounces back to `in_progress / phase:work` with a fresh context. The agent reads `## Review Findings` (written into the ticket comments) and fixes only those.
-- **QA** fails → same rewind, agent reads `## QA Failure`.
-- Three consecutive QA failures on the same ticket → `blocked` + human ping.
-
-See [`docs/WORKFLOW.md`](docs/WORKFLOW.md) for the full state diagram and [`skills/multica-workflow/lanes/`](skills/multica-workflow/lanes/) for the per-lane prompts.
+Each phase runs a fresh-context agent; review/qa failures rewind to `work` rather
+than corrupting one long session. Three consecutive QA failures → `blocked` +
+ping a human subscriber. Full state diagram and ready-to-run `advance.sh` /
+`rewind.sh` snippets live in
+[`skills/multica/references/workflow.md`](skills/multica/references/workflow.md).
 
 ---
 
 ## Quick taste
 
 ```bash
-# Create a ticket and start the pipeline
-multica issue create --title "Add CSV export to /reports" --label "phase:explore"
-# → returns MUL-142
+# Create a ticket, start exploring, and let the daemon dispatch the agent
+ID=$(multica issue create --title "Add CSV export to /reports" --priority high \
+       | grep -oE 'MUL-[0-9]+' | head -1)
+multica issue metadata set "$ID" --key pipeline_status --value explore
+multica issue assign "$ID" --to claude-explorer
 
-# Assign the explorer agent — Multica auto-starts it
-multica issue assign MUL-142 --agent claude-explorer
-
-# That's it. The agent writes ## Domain Brief into the ticket, swaps the label to
-# phase:work, sets state=in_progress, and Multica's daemon picks the next phase.
-# Watch progress:
-multica issue get MUL-142
-multica daemon logs -f
+# Watch it run
+multica issue get "$ID"
+multica daemon logs
 ```
-
-For an end-to-end walkthrough, see [`examples/csv-export-walkthrough.md`](examples/csv-export-walkthrough.md).
 
 ---
 
-## Harness compatibility matrix
+## Harness compatibility
 
-| Harness | Skill path | Adapter | Status |
-|---------|-----------|---------|--------|
-| Multica (native) | `multica skill import` | n/a | ✅ first-class |
-| Claude Code | `~/.claude/skills/<name>/SKILL.md` | `adapters/claude-code.sh` | ✅ |
-| Codex CLI | `~/.codex/commands/<name>.md` | `adapters/codex.sh` | ✅ |
-| Gemini CLI | `gemini extensions install` | `adapters/gemini.sh` | ✅ |
-| OpenCode | `~/.config/opencode/commands/<name>.md` | `adapters/opencode.sh` | ✅ |
-| Pi | `~/.pi/skills/<name>/SKILL.md` | `adapters/pi.sh` | ✅ |
-| Cursor | `.cursor/rules/<name>.mdc` | (via Multica or manual) | ⚠️ partial |
-| Copilot | `.github/copilot-instructions.md` | (via Multica) | ⚠️ partial |
-
-Multica's own agent system (Claude Code, Codex, Cursor, Copilot, Gemini, Hermes — 11 total) receives the skill through `multica skill import` regardless of which adapter you pick locally.
+| Harness | Skill path | Adapter |
+|---------|-----------|---------|
+| Multica (native) | `multica skill import` | n/a — first-class |
+| Claude Code | `~/.claude/skills/multica/` | `adapters/claude-code.sh` |
+| Codex CLI | `~/.codex/skills/` + `~/.codex/commands/multica.md` | `adapters/codex.sh` |
+| Gemini CLI | gemini extension | `adapters/gemini.sh` |
+| OpenCode | `~/.config/opencode/skills/multica/` | `adapters/opencode.sh` |
+| Pi | `~/.pi/skills/multica/` | `adapters/pi.sh` |
 
 ---
 
@@ -129,19 +107,23 @@ Multica's own agent system (Claude Code, Codex, Cursor, Copilot, Gemini, Hermes 
 
 ```
 multica-skill/
-├── skills/
-│   ├── multica/              # CLI usage guide
-│   ├── multica-workflow/     # pipeline orchestration
-│   │   ├── lanes/            # per-phase prompt templates
-│   │   └── scripts/          # flow-next.sh, flow-rewind.sh
-│   └── multica-onboarding/   # default-skill bootstrap
-│       └── scripts/          # install-{superpowers,atlassian,playwright}.sh
-├── adapters/                 # per-harness install scripts
-├── bin/                      # multica-flow, multica-skill entrypoints
-├── templates/                # workflow.yaml, ticket.md
-├── docs/                     # WORKFLOW.md, HARNESSES.md, ARCHITECTURE.md
-└── examples/                 # end-to-end walkthroughs
+├── skills/multica/
+│   ├── SKILL.md
+│   └── references/
+│       ├── cli-reference.md
+│       ├── onboarding.md
+│       └── workflow.md
+├── adapters/              # per-harness install scripts (single skill)
+├── docs/index.html        # GitHub Pages landing
+├── install.sh
+└── LICENSE
 ```
+
+### Publishing the landing page
+
+The landing page is a single self-contained file at `docs/index.html`. To serve
+it: **Settings → Pages → Build from a branch → `main` / `/docs`**. It then lives
+at `https://<owner>.github.io/multica-skill/`.
 
 ---
 
@@ -152,5 +134,4 @@ MIT. See [LICENSE](LICENSE).
 ## Credits
 
 - Pipeline shape ported from [cskwork/symphony-multi-agent](https://github.com/cskwork/symphony-multi-agent).
-- Default skill picks: [obra/superpowers](https://github.com/obra/superpowers), [leweii/atlassian-cli](https://github.com/leweii/atlassian-cli), [Microsoft Playwright](https://playwright.dev).
-- Built for [Multica](https://multica.ai)'s board + agent platform.
+- Built for [Multica](https://multica.ai) — the open-source managed-agents platform.
