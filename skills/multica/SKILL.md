@@ -5,7 +5,7 @@ description: Use whenever the user mentions "multica", asks to create/move/comme
 
 # multica — CLI, onboarding, and workflow
 
-`multica` is the local CLI for [Multica](https://multica.ai), the open-source managed-agents platform. It connects your machine to a Multica server, manages the board (workspaces, projects, issues, comments), wires AI coding tools as **agents**, and runs a **daemon** that picks up assigned work and dispatches it to those tools.
+`multica` is the local CLI for [Multica](https://cskwork.github.io/multica-skill/), the open-source managed-agents platform. It connects your machine to a Multica server, manages the board (workspaces, projects, issues, comments), wires AI coding tools as **agents**, and runs a **daemon** that picks up assigned work and dispatches it to those tools.
 
 This single skill is the reference card. Deep detail lives in `references/` — load only the file you need:
 
