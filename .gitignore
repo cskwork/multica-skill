@@ -7,3 +7,4 @@ e2e/artifacts/
 storageState.json
 playwright-report/
 test-results/
+.superdesign/
