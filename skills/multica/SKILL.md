@@ -5,13 +5,13 @@ description: Use whenever the user mentions "multica", asks to create/move/comme
 
 # multica — CLI, onboarding, and workflow
 
-`multica` is the local CLI for [Multica](https://cskwork.github.io/multica-skill/), the open-source managed-agents platform. It connects your machine to a Multica server, manages the board (workspaces, projects, issues, comments), wires AI coding tools as **agents**, and runs a **daemon** that picks up assigned work and dispatches it to those tools.
+`multica` is the local CLI for [Multica](https://multica.ai), the open-source managed-agents platform. It connects your machine to a Multica server, manages the board (workspaces, projects, issues, comments), wires AI coding tools as **agents**, and runs a **daemon** that picks up assigned work and dispatches it to those tools.
 
-This single skill is the reference card. Deep detail lives in `references/` — load only the file you need:
+This single skill is the reference card. Deep detail lives in `references/`:
 
-- **`references/cli-reference.md`** — every CLI command, by area, with exact flags.
-- **`references/onboarding.md`** — first-run setup: install → `setup` → verify runtime → create agent → first task.
-- **`references/workflow.md`** — the explore→work→review→qa→learn pipeline on Multica's fixed states, with rewind logic and copy-paste shell recipes.
+- **Read `references/cli-reference.md` before running a `multica` command whose flags you have not confirmed** — every CLI command, by area, with exact flags.
+- **Read `references/onboarding.md` before the first command on a machine with no `~/.multica/config.json`** — first-run setup: install → `setup` → verify runtime → create agent → first task.
+- **Read `references/workflow.md` before moving an issue between phases** — the explore→work→review→qa→learn pipeline on Multica's fixed states, with rewind logic and copy-paste shell recipes.
 
 ## Mental model
 
@@ -78,7 +78,7 @@ multica issue status MUL-142 in_progress          # status is a positional arg, 
 multica issue comment add MUL-142 --content "@reviewer please review the diff"
 ```
 
-> **Assign only a workable agent.** `multica issue assign` should target an agent whose runtime is actually online and claiming work, or the server cancels the task after a short window. Pre-flight: `multica runtime list` (STATUS online) + `multica agent list`, and tail `multica daemon logs` if unsure. Resolve agent/runtime IDs at call time — never hard-code them.
+> **Assign only a workable agent.** `multica issue assign` should target an agent whose runtime is actually online and claiming work, or the server cancels the task after a short window. Pre-flight: `multica runtime list` (STATUS online) + `multica agent list`, and tail `multica daemon logs` if unsure. Resolve agent/runtime IDs at call time.
 
 ## Agents and skills
 
@@ -86,10 +86,10 @@ multica issue comment add MUL-142 --content "@reviewer please review the diff"
 multica agent list                         # see slugs, providers, status
 multica agent create                       # required: name + runtime (AI tool); rest optional — see --help
 multica skill import --url https://github.com/cskwork/multica-skill   # import this bundle
-multica agent skills                        # attach/detach a skill to an agent (nested)
+multica agent skills <agent-slug>          # attach/detach a skill to an agent (nested)
 ```
 
-Agent optional fields (all changeable later): system instructions, model, `custom_env`, `custom_args`, visibility (`private` default), `max_concurrent_tasks` (default 6). Details in `references/cli-reference.md`. Don't put high-value secrets in `custom_env` (stored plaintext server-side).
+Agent optional fields (all changeable later): system instructions, model, `custom_env`, `custom_args`, visibility (`private` default), `max_concurrent_tasks` (default 6). Details in `references/cli-reference.md`. Secrets in `custom_env` are stored plaintext server-side — use limited-scope credentials.
 
 ## Workflow in one breath
 
@@ -116,4 +116,3 @@ Encode the phase as `metadata pipeline_status=<phase>`, move `status` across the
 ## See also
 
 - Multica docs: [cli](https://multica.ai/docs/cli) · [agents](https://multica.ai/docs/agents-create) · [skills](https://multica.ai/docs/skills) · [issues](https://multica.ai/docs/issues) · [daemon & runtimes](https://multica.ai/docs/daemon-runtimes) · [autopilots](https://multica.ai/docs/autopilots) · [squads](https://multica.ai/docs/squads)
-- This bundle: `references/cli-reference.md`, `references/onboarding.md`, `references/workflow.md`
