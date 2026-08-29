@@ -3,20 +3,20 @@
 **한국어 · [English](README.en.md)**
 
 [Multica](https://cskwork.github.io/multica-skill/) 관리형 에이전트 플랫폼을 위한
-**하네스 비종속 단일 [Agent Skill](https://agentskills.io)**. 어떤 코딩 에이전트에게든
-**전체 `multica` CLI**, **머신 온보딩 방법**, 그리고 Multica 보드 위에서 돌리는
-**다단계 코딩 파이프라인**(explore → work → review → qa → learn)을 가르칩니다.
+하네스 비종속 단일 [Agent Skill](https://agentskills.io)입니다. 어떤 코딩 에이전트에게든
+`multica` CLI 전체, 머신 온보딩 절차, 그리고 Multica 보드 위에서 돌리는
+다단계 코딩 파이프라인(explore → work → review → qa → learn)을 가르칩니다.
 
 > 스킬 하나. CLI 전체. 온보딩과 워크플로우를 공식 문서에 맞춰 담았습니다.
 
-📄 **랜딩 페이지:** [cskwork.github.io/multica-skill](https://cskwork.github.io/multica-skill/)
+랜딩 페이지: [cskwork.github.io/multica-skill](https://cskwork.github.io/multica-skill/)
 
 ---
 
 ## 구성
 
-스킬은 하나이며, 무거운 세부 내용은 references로 분리했습니다(progressive disclosure —
-에이전트는 필요한 파일만 읽습니다):
+스킬은 하나이고, 무거운 세부 내용은 references로 분리했습니다. progressive disclosure
+방식이라 에이전트는 그때 필요한 파일만 읽습니다.
 
 | 파일 | 용도 |
 |------|------|
@@ -25,13 +25,14 @@
 | `skills/multica/references/onboarding.md` | 첫 실행: 설치 → `setup` → 런타임 확인 → 에이전트 생성 → 첫 작업. |
 | `skills/multica/references/workflow.md` | explore→work→review→qa→learn 파이프라인, rewind 로직, 복사용 셸 레시피. |
 
-모든 명령어는 Multica 공식 `CLI_AND_DAEMON.md`와 `docs/cli`에 1:1로 대조했습니다 — 추측 플래그 없음.
+모든 명령어는 Multica 공식 `CLI_AND_DAEMON.md`, `docs/cli`와 1:1로 대조했습니다.
+추측으로 넣은 플래그는 없습니다.
 
 ---
 
 ## 설치
 
-### 방법 1 — Multica 경유 (권장)
+### 방법 1. Multica 경유 (권장)
 
 ```bash
 multica skill import --url https://github.com/cskwork/multica-skill
@@ -39,7 +40,7 @@ multica skill list | grep multica
 multica agent skills <agent-slug>      # 에이전트에 부착 (중첩 명령 — --help 참고)
 ```
 
-### 방법 2 — 다른 하네스
+### 방법 2. 다른 하네스
 
 ```bash
 git clone https://github.com/cskwork/multica-skill ~/.multica-skill
@@ -92,7 +93,7 @@ multica daemon logs
 
 | 하네스 | 스킬 경로 | 어댑터 |
 |--------|-----------|--------|
-| Multica (네이티브) | `multica skill import` | 불필요 — 1급 지원 |
+| Multica (네이티브) | `multica skill import` | 필요 없음, 1급 지원 |
 | Claude Code | `~/.claude/skills/multica/` | `adapters/claude-code.sh` |
 | Codex CLI | `~/.codex/skills/` + `~/.codex/commands/multica.md` | `adapters/codex.sh` |
 | Gemini CLI | gemini 확장 | `adapters/gemini.sh` |
@@ -131,5 +132,5 @@ MIT. [LICENSE](LICENSE) 참고.
 
 ## 크레딧
 
-- 파이프라인 형태는 [cskwork/symphony-multi-agent](https://github.com/cskwork/symphony-multi-agent)에서 이식.
-- [Multica](https://multica.ai) — 오픈소스 관리형 에이전트 플랫폼 — 을 위해 제작.
+- 파이프라인 형태는 [cskwork/symphony-multi-agent](https://github.com/cskwork/symphony-multi-agent)에서 이식했습니다.
+- 오픈소스 관리형 에이전트 플랫폼 [Multica](https://multica.ai)를 위해 만들었습니다.
