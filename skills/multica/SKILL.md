@@ -3,15 +3,15 @@ name: multica
 description: Use whenever the user mentions "multica", asks to create/move/comment/assign a board ticket, dispatches an AI coding tool (Claude Code, Codex, Cursor, Gemini, Copilot, ...) to an issue, manages workspaces/projects/agents/skills/squads/daemon/runtimes/autopilots, sets up the CLI or a PAT, onboards a new machine, or runs a multi-phase coding pipeline on a Multica board. Covers the full `multica` CLI plus onboarding and the explore→work→review→qa→learn workflow.
 ---
 
-# multica — CLI, onboarding, and workflow
+# multica: CLI, onboarding, and workflow
 
 `multica` is the local CLI for [Multica](https://multica.ai), the open-source managed-agents platform. It connects your machine to a Multica server, manages the board (workspaces, projects, issues, comments), wires AI coding tools as **agents**, and runs a **daemon** that picks up assigned work and dispatches it to those tools.
 
 This single skill is the reference card. Deep detail lives in `references/`:
 
-- **Read `references/cli-reference.md` before running a `multica` command whose flags you have not confirmed** — every CLI command, by area, with exact flags.
-- **Read `references/onboarding.md` before the first command on a machine with no `~/.multica/config.json`** — first-run setup: install → `setup` → verify runtime → create agent → first task.
-- **Read `references/workflow.md` before moving an issue between phases** — the explore→work→review→qa→learn pipeline on Multica's fixed states, with rewind logic and copy-paste shell recipes.
+- **Read `references/cli-reference.md` before running a `multica` command whose flags you have not confirmed.** Every CLI command, by area, with exact flags.
+- **Read `references/onboarding.md` before the first command on a machine with no `~/.multica/config.json`.** First-run setup: install → `setup` → verify runtime → create agent → first task.
+- **Read `references/workflow.md` before moving an issue between phases.** The explore→work→review→qa→learn pipeline on Multica's fixed states, with rewind logic and copy-paste shell recipes.
 
 ## Mental model
 
@@ -29,7 +29,7 @@ Three rules that drive everything:
 
 1. **Assignment IS dispatch.** Assigning an issue to an agent (or creating it with `--assignee` at a non-`backlog` status) makes the daemon claim it and run the tool automatically. `backlog` parks the assignee without firing.
 2. **`@agent-name` in a comment** triggers a fresh run on that issue.
-3. **States are fixed; `metadata` is the free channel.** There is no label-setting CLI command — encode sub-phases and durable state with `multica issue metadata set`, query with `multica issue list --metadata key=value`.
+3. **States are fixed; `metadata` is the free channel.** There is no label-setting CLI command, so encode sub-phases and durable state with `multica issue metadata set`, query with `multica issue list --metadata key=value`.
 
 ## Quick start
 
@@ -89,7 +89,7 @@ multica skill import --url https://github.com/cskwork/multica-skill   # import t
 multica agent skills <agent-slug>          # attach/detach a skill to an agent (nested)
 ```
 
-Agent optional fields (all changeable later): system instructions, model, `custom_env`, `custom_args`, visibility (`private` default), `max_concurrent_tasks` (default 6). Details in `references/cli-reference.md`. Secrets in `custom_env` are stored plaintext server-side — use limited-scope credentials.
+Agent optional fields (all changeable later): system instructions, model, `custom_env`, `custom_args`, visibility (`private` default), `max_concurrent_tasks` (default 6). Details in `references/cli-reference.md`. Secrets in `custom_env` are stored plaintext server-side, so use limited-scope credentials.
 
 ## Workflow in one breath
 
@@ -110,7 +110,7 @@ Encode the phase as `metadata pipeline_status=<phase>`, move `status` across the
 | `auth status` unauthenticated | `multica login` (browser) or `multica login --token mul_…` |
 | Agent assigned, no run | `multica daemon status` → `multica daemon start`; confirm runtime online |
 | Run stalls | `multica daemon logs`; check `max_concurrent_tasks` (agent) and daemon cap (default 20) |
-| `skill import` fails | repo needs a discoverable `SKILL.md`; default `--on-conflict fail` — use `overwrite\|rename\|skip` |
+| `skill import` fails | repo needs a discoverable `SKILL.md`; default `--on-conflict fail`, use `overwrite\|rename\|skip` |
 | Slow network timeouts | `MULTICA_HTTP_TIMEOUT=60s multica …` (default 30s) |
 
 ## See also
