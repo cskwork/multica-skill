@@ -4,20 +4,20 @@
 
 A single, harness-agnostic [Agent Skill](https://agentskills.io) for the
 [Multica](https://cskwork.github.io/multica-skill/) managed-agents platform. It teaches any coding
-agent the **full `multica` CLI**, how to **onboard a machine**, and how to run a
-**multi-phase coding pipeline** (explore → work → review → qa → learn) on a
+agent the full `multica` CLI, how to onboard a machine, and how to run a
+multi-phase coding pipeline (explore → work → review → qa → learn) on a
 Multica board.
 
 > One skill. The whole CLI. Onboarding and workflow, mapped to the official docs.
 
-📄 **Landing page:** [cskwork.github.io/multica-skill](https://cskwork.github.io/multica-skill/)
+Landing page: [cskwork.github.io/multica-skill](https://cskwork.github.io/multica-skill/)
 
 ---
 
 ## What's inside
 
-One skill, with heavy detail split into references (progressive disclosure — the
-agent loads only what it needs):
+One skill, with heavy detail split into references. Progressive disclosure means
+the agent loads only the file it needs at that moment.
 
 | File | Purpose |
 |------|---------|
@@ -27,13 +27,13 @@ agent loads only what it needs):
 | `skills/multica/references/workflow.md` | The explore→work→review→qa→learn pipeline, rewind logic, copy-paste shell recipes. |
 
 Every command is checked against Multica's official `CLI_AND_DAEMON.md` and
-`docs/cli` — no guessed flags.
+`docs/cli`. No guessed flags.
 
 ---
 
 ## Install
 
-### Option 1 — Via Multica (recommended)
+### Option 1. Via Multica (recommended)
 
 ```bash
 multica skill import --url https://github.com/cskwork/multica-skill
@@ -41,7 +41,7 @@ multica skill list | grep multica
 multica agent skills <agent-slug>      # attach it to an agent (nested command — see --help)
 ```
 
-### Option 2 — Any other harness
+### Option 2. Any other harness
 
 ```bash
 git clone https://github.com/cskwork/multica-skill ~/.multica-skill
@@ -58,9 +58,9 @@ Then invoke `/multica` (or just mention "multica") inside your harness.
 ## The pipeline
 
 Multica's states are fixed (`backlog | todo | in_progress | in_review | done |
-blocked | cancelled`) and there is no label-setting CLI command, so the workflow
-encodes each phase in **issue metadata** (`pipeline_status`) and moves status +
-reassigns as it advances:
+blocked | cancelled`) and there is no label-setting CLI command. So the workflow
+encodes each phase in issue metadata (`pipeline_status`), then moves the status
+and reassigns as it advances:
 
 ```
 explore ─▶ work ─▶ review ─▶ qa ─▶ learn ─▶ done
@@ -68,10 +68,10 @@ explore ─▶ work ─▶ review ─▶ qa ─▶ learn ─▶ done
    └──── rewind ◀──────┴────────┘     review or qa finds a problem → back to work
 ```
 
-Each phase runs a fresh-context agent; review/qa failures rewind to `work` rather
-than corrupting one long session. Three consecutive QA failures → `blocked` +
-ping a human subscriber. Full state diagram and ready-to-run `advance.sh` /
-`rewind.sh` snippets live in
+Each phase runs a fresh-context agent. A review or qa failure rewinds to `work`
+rather than corrupting one long session. Three consecutive QA failures → `blocked`
+plus a ping to a human subscriber. The full state diagram and ready-to-run
+`advance.sh` / `rewind.sh` snippets live in
 [`skills/multica/references/workflow.md`](skills/multica/references/workflow.md).
 
 ---
@@ -96,7 +96,7 @@ multica daemon logs
 
 | Harness | Skill path | Adapter |
 |---------|-----------|---------|
-| Multica (native) | `multica skill import` | n/a — first-class |
+| Multica (native) | `multica skill import` | none needed, first-class |
 | Claude Code | `~/.claude/skills/multica/` | `adapters/claude-code.sh` |
 | Codex CLI | `~/.codex/skills/` + `~/.codex/commands/multica.md` | `adapters/codex.sh` |
 | Gemini CLI | gemini extension | `adapters/gemini.sh` |
@@ -115,7 +115,7 @@ multica-skill/
 │       ├── cli-reference.md
 │       ├── onboarding.md
 │       └── workflow.md
-├── adapters/              # per-harness install scripts (single skill)
+├── adapters/              # per-harness install scripts, one skill
 ├── docs/index.html        # GitHub Pages landing
 ├── install.sh
 └── LICENSE
@@ -124,8 +124,8 @@ multica-skill/
 ### Publishing the landing page
 
 The landing page is a single self-contained file at `docs/index.html`. To serve
-it: **Settings → Pages → Build from a branch → `main` / `/docs`**. It then lives
-at `https://<owner>.github.io/multica-skill/`.
+it, go to **Settings → Pages → Build from a branch → `main` / `/docs`**. It then
+lives at `https://<owner>.github.io/multica-skill/`.
 
 ---
 
@@ -136,4 +136,4 @@ MIT. See [LICENSE](LICENSE).
 ## Credits
 
 - Pipeline shape ported from [cskwork/symphony-multi-agent](https://github.com/cskwork/symphony-multi-agent).
-- Built for [Multica](https://multica.ai) — the open-source managed-agents platform.
+- Built for [Multica](https://multica.ai), the open-source managed-agents platform.
