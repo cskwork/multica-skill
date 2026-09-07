@@ -1,11 +1,13 @@
 ---
 name: multica
-description: Use whenever the user mentions "multica", asks to create/move/comment/assign a board ticket, dispatches an AI coding tool (Claude Code, Codex, Cursor, Gemini, Copilot, ...) to an issue, manages workspaces/projects/agents/skills/squads/daemon/runtimes/autopilots, sets up the CLI or a PAT, onboards a new machine, or runs a multi-phase coding pipeline on a Multica board. Covers the full `multica` CLI plus onboarding and the explore→work→review→qa→learn workflow.
+description: Operate Multica boards, agent dispatch, runtime setup, and its explore/work/review/QA workflow. Use for Multica-specific tasks, not generic ticket or agent management.
 ---
 
 # multica: CLI, onboarding, and workflow
 
 `multica` is the local CLI for [Multica](https://multica.ai), the open-source managed-agents platform. It connects your machine to a Multica server, manages the board (workspaces, projects, issues, comments), wires AI coding tools as **agents**, and runs a **daemon** that picks up assigned work and dispatches it to those tools.
+
+Treat assignment, agent mentions, daemon/autopilot start, and status changes that dispatch work as execution actions. Use the user-authorized project, issue, and runtime scope; inspection alone does not authorize dispatch or comments.
 
 This single skill is the reference card. Deep detail lives in `references/`:
 
